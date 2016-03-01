@@ -1,0 +1,15 @@
+*.sqlite3
+*.log
+*.ini
+*geneignore.txt
+*.aux
+*.pdf
+*.gz
+*.tex
+*.p
+*~
+*.*#
+__pycache__/
+*.raw
+venv/
+*.egg-info/
