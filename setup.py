@@ -13,7 +13,7 @@ setup(
     name='PyUtilities',
     version=package_version,
     #py_modules=['pyutilities'],
-    pacages=find_packages(),
+    packages=find_packages(),
     install_requires=[
         'Click', 'beautifulsoup4', 'biopython',
     ],
