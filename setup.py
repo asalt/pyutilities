@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 def calculate_version(inputfile):
     version_list =  [x.split('\'')[1] for x in open(inputfile, 'r')
                      if x.startswith('__version__')]
@@ -7,17 +7,18 @@ def calculate_version(inputfile):
     else:
         return '1.0'
 
-package_version = calculate_version('pyutilities.py')
+package_version = calculate_version('./pyutilities/pyutilities.py')
 
 setup(
     name='PyUtilities',
     version=package_version,
-    py_modules=['pyutilities'],
+    #py_modules=['pyutilities'],
+    pacages=find_packages(),
     install_requires=[
         'Click', 'beautifulsoup4', 'lxml', 'biopython',
     ],
     entry_points="""
     [console_scripts]
-    pyutilities=pyutilities:cli
+    pyutilities=pyutilities.pyutilities:cli
     """
 )
