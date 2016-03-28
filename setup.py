@@ -15,7 +15,7 @@ setup(
     #py_modules=['pyutilities'],
     pacages=find_packages(),
     install_requires=[
-        'Click', 'beautifulsoup4', 'lxml', 'biopython',
+        'Click', 'beautifulsoup4', 'biopython',
     ],
     entry_points="""
     [console_scripts]
