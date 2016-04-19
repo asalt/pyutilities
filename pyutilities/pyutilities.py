@@ -98,8 +98,9 @@ def gene_to_pmid(genelist):
         result = handle.read()
         soup = BeautifulSoup(result, 'xml')
         linkset = soup.eLinkResult.LinkSet  # based on ncbi xml structure
-        links = [x.Id.text for x in linkset.LinkSetDb.find_all('Link')]
-        gene_pmids[gene] = links
+        if linkset.LinkSetDb is not None:
+            links = [x.Id.text for x in linkset.LinkSetDb.find_all('Link')]
+            gene_pmids[gene] = links
     return gene_pmids
 
 def pubmed_to_pubmedinfo(genepmids):
@@ -121,17 +122,23 @@ def pubmed_to_pubmedinfo(genepmids):
                 record=PubMedRecord(pmid=r.get('PMID'),
                                     title=r.get('TI'),
                                     journal=r.get('JT'),
-                                    date=r.get('EDAT')[:10], # don't care about
-                                    authors=r.get('AU', ''), # H:M:S
+                                    date = r.get('EDAT'),
+                                    authors=r.get('AU', ''),
                                     keywords=r.get('OT'),
                                     abstract = r.get('AB', ''))
                 genelit[gene].append(record)
     return genelit
 
-def pop_nokeywords(genelit, filter_kws):
+def pop_nokeywords(genelit, filter_kws, how='or'):
     pat = re.compile('|'.join(filter_kws), re.I)
     for gene in genelit:
-        genelit[gene] = [x for x in genelit[gene] if pat.search(x.abstract) or pat.search(x.title)]
+        if how == 'or':
+            genelit[gene] = [x for x in genelit[gene]
+                             if pat.search(x.abstract) or pat.search(x.title)]
+        elif how == 'and':
+            genelit[gene] = [x for x in genelit[gene]
+                             if all(kw.lower() in x.abstract.lower() for kw in filter_kws)
+                             or all(kw.lower() in x.abstract.lower() for kw in filter_kws)]
     return genelit
 
 def read_stepwise(genelit, genedict=None):
@@ -186,7 +193,7 @@ def gene_pmid(config, geneids, keyword,):
     read_stepwise(genelit)
 
 @make_iterable(0, str)
-def gene_pmid_api(geneids, keywords=None, email=None):
+def gene_pmid_api(geneids, keywords=None, how='or', email=None):
     """An API for gene_pmid
     geneids is one or more geneids to query.
     keywords is a list of keywords to filter by"""
@@ -197,6 +204,18 @@ def gene_pmid_api(geneids, keywords=None, email=None):
     gene_pmids = gene_to_pmid(geneids)
     genelit = pubmed_to_pubmedinfo(gene_pmids)
 
-    if keyword:
-        genelit = pop_nokeywords(genelit, keyword)
+    if keywords:
+        genelit = pop_nokeywords(genelit, keywords, how=how)
     return genelit
+
+@make_iterable(0, str)
+def gene_pmid_counter_api(geneids, keywords=None, how='or', email=None):
+    """An API for gene_pmid
+    geneids is one or more geneids to query.
+    keywords is a list of keywords to filter by"""
+    if email is None:
+        email = get_stored_email()
+    if email:
+        Entrez.email = email
+    gene_pmids = gene_to_pmid(geneids)
+    return gene_pmids
